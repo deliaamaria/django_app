@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>What are the steps that brought us to this point?</title>
+
+    <style>
+   body {
+            background-image: url("https://img.freepik.com/free-photo/vivid-blurred-colorful-wallpaper-background_58702-3799.jpg");
+            background-repeat: no-repeat;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            color: black;
+   }
+
+    h1 {
+      margin: 0 auto;
+      padding: 40px 20px;
+      font-size: 35px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    p {
+            text-align: center;
+            font-size: 24px;
+            margin: 20px;
+            text-align: left;
+        }
+
+        a{
+        color: green;
+        }
+    </style>
+</head>
+<body>
+ <h1>What are the steps that brought us to this point?</h1>
+<p>In the current era, Google Play Store stands as the largest and most popular Android app store. With approximately three to four million apps available for download, developing apps that stand out amidst the competition is a challenge for app developers. To differentiate themselves in this oversaturated market, they must identify the key factors that play a role in customer decision-making.</p>
+<p>The objective of this project is to provide insights to better understand customer requirements and, thus, assist developers in popularizing their products, which translates to a high number of installations.</p>
+<p>The dataset for the analysis of the Google Play Store is from <a href="https://www.kaggle.com/datasets/gauthamp10/google-playstore-apps">Kaggle</a>. We chose a dataset with as much data as possible to have a more precise analysis. Initially, it had 2,177,946 records (number of apps) and 24 variables (number of features for each app). The target variable is "Installs" (number of installations), and the explanatory variables include category, price, rating, and release date, among others. Specifically, "Rating" is a continuous variable on a scale from 1 to 5.</p>
+<p>The raw data contained numerous categorical variables and many missing values in different columns. Data cleaning was performed using Jupyter Notebook, and it included steps such as:</p>
+<p> - Discarding all observations with missing values, as analyzing apps with missing data is challenging.</p>
+<p> - Removing all columns we would not use, including "App id," "Free," "Size," and "Privacy Policy," as these pieces of information were not as useful for this project, and others were also subsets of other columns.</p>
+<p> - Eliminating all apps with a rating below 2 and fewer than 10,000 installations as they were relatively unknown and not relevant to our study.</p>
+<p> - Renaming some columns, such as "App Name" to "AppName," to facilitate working with the dataset.</p>
+</body>
+</html>

@@ -1,0 +1,305 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Google Play Store Apps Analysis</title>
+  <script src="{% static 'js/carousel.js' %}"></script>
+    <script src="{% static 'js/menu.js' %}"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      font-size: 1.25rem;
+      line-height: 150%;
+      text-align: center;
+      color: black;
+      }
+
+    .bg-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background-image: url("https://img.freepik.com/free-photo/vivid-blurred-colorful-wallpaper-background_58702-3799.jpg");
+      background-repeat: no-repeat;
+      background-size: cover;
+      opacity: 1.4;
+    }
+
+    nav {
+      padding: 0;
+      background: linear-gradient(to bottom right, #0066cc 0%, #66ffff);
+      margin: 0;
+    }
+
+    nav.hidden {
+      display: none;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 600;
+      margin: 0;
+      padding-top: 30px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: auto;
+      margin: 0 auto;
+      padding: 10px;
+      text-align: justify;
+    }
+
+    p, footer {
+      margin: 20px 0;
+      padding: 0 20px;
+      text-align: justify;
+    }
+
+    footer p {
+      margin: 0;
+    }
+
+    .credit {
+      font-size: 15px;
+      text-align: left;
+      margin: 0;
+      line-height: 1.35;
+      padding-top: 15px;
+    }
+
+    .menu {
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      /* Efect de paralax */
+      transform: translateZ(0);
+      transition: transform 0.5s;
+    }
+
+    .menu a {
+      color: white;
+      text-align: center;
+      padding: 14px 27.1px;
+      text-decoration: none;
+      font-size: 17px;
+      transition: background-color 0.3s ease;
+    }
+
+    .menu a:hover {
+      background-color: #5B8CA1;
+      color: white;
+      /* Efect de animație */
+      transform: scale(1.15);
+    }
+
+    .menu a.active {
+      background-color: #81C6FF;
+    }
+
+    @media screen and (max-width: 768px) {
+      h1 {
+        font-size: 32px;
+      }
+      p {
+        margin: 10px 0;
+        padding: 0 10px;
+      }
+    }
+
+    @media screen and (min-width: 1200px) {
+      .container {
+        text-align: center;
+        margin: 0 auto;
+        padding: 20px 100px;
+      }
+    }
+
+    a:focus {
+        outline: 2px solid #81C6FF;
+    }
+
+    .carousel-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      height: 450px; /* Setați înălțimea containerului */
+    }
+
+    .carousel {
+      display: flex;
+      position: relative;
+      width: 100%;
+      height: 100%; /* Asigurați-vă că ocupă întregul container */
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      z-index: 1;
+    }
+
+    .slide img {
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border: 3px solid black;
+    }
+
+    .active {
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .bar {
+      width: 25px;
+      height: 3px;
+      background-color: white;
+      margin: 4px 0;
+    }
+
+    .mobile-menu {
+      display: none;
+      text-align: center;
+      background-color: rgba(0, 102, 204, 0.9); /* Culorile și transparența pot fi ajustate */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      padding-top: 60px; /* Ajustați pentru a centra conținutul */
+    }
+
+.mobile-menu ul {
+  list-style: none;
+  padding: 0;
+}
+
+.mobile-menu li {
+  margin: 10px 0;
+}
+
+.mobile-menu a {
+  color: white;
+  text-decoration: none;
+  font-size: 20px;
+  transition: color 0.3s;
+}
+
+.mobile-menu a:hover {
+  color: #81C6FF; /* Culoare de evidențiere */
+}
+
+#menu-toggle {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 20px;
+  z-index: 2;
+  cursor: pointer;
+}
+
+#menu-toggle.active {
+  display: block;
+}
+
+  </style>
+
+</head>
+
+<body>
+  <div class="bg-image"></div>
+  <nav class="top">
+       <div class="menu">
+        <a class="active" href="/about/">About</a>
+        <a id="bi" tabindex="1" href="/plot/">Price vs Rating</a>
+        <a tabindex="2" href="/plot1/">Installs per Category</a>
+        <a tabindex="3" href="/plot2/">Price per Category</a>
+        <a tabindex="4" href="/plot3/">Rating depending on the release's year</a>
+        <a tabindex="5" href="/plot4/">Apps evolution</a>
+        <a id="bf" tabindex="6" href="/more/">More details</a>
+      </div>
+
+      <div id="menu-toggle" class="menu-icon">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+
+    <div class="mobile-menu">
+      <ul>
+        <li>Menu:</li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/plot/">Price vs Rating</a></li>
+        <li><a href="/plot1/">Installs per Category</a></li>
+        <li><a href="/plot2/">Price per Category</a></li>
+        <li><a href="/plot3/">Rating depending on the release's year</a></li>
+        <li><a href="/plot4/">Apps evolution</a></li>
+        <li><a href="/more/">More details</a></li>
+      </ul>
+    </div>
+  </nav>
+    <h1>Google Play Store Apps Analysis</h1>
+  <main>
+    <section class="container">
+      <article>
+<p>In recent years, the number of applications available in the Google Play Store has significantly increased, providing users with a wide variety of options to meet their needs and enhance their experience on mobile devices. This exponential growth in applications has brought both opportunities and challenges for developers.</p>
+<p>Data analysis about applications can play a vital role in their success and evolution. By studying data related to downloads, reviews, and user preferences, developers can gain valuable insights into user preferences and behavior. This information offers a deep understanding of how users interact with applications and can be used to adapt and improve existing applications.</p>
+<p>One of the significant advantages of data analysis is the ability to identify trends and patterns in the popularity and usage of applications. Developers can discover which features and functionalities are favored by users and make informed decisions regarding the enhancement of the performance and functionality of existing applications. Additionally, data analysis can play a crucial role in the development of new applications. By understanding user preferences and needs, developers can identify market gaps and create innovative applications to meet user requirements. This enables developers to proactively respond to user demand and provide efficient and useful solutions.</p>
+<p>Another important aspect of data analysis is tracking user reviews and feedback. User reviews and ratings can provide valuable insights into what works well in an application and what could be improved. By carefully listening to user feedback, developers can adjust and optimize their applications to align with user needs and desires. This way, developers can create applications that more efficiently meet user requirements and expectations.</p>
+</article>
+
+        <p>Quick preview:</p>
+            <div class="carousel-container">
+      <div class="carousel">
+        <div class="slide">
+          <img src="{% static 'image/Untitled1.png' %}" alt="Image 1" title="Click for more">
+        </div>
+        <div class="slide">
+          <img src="{% static 'image/Untitled2.png' %}" alt="Image 2" title="Click for more">
+        </div>
+          <div class="slide">
+          <img src="{% static 'image/Untitled3.png' %}" alt="Image 3" title="Click for more">
+        </div>
+          <div class="slide">
+          <img src="{% static 'image/Untitled4.png' %}" alt="Image 4" title="Click for more">
+        </div>
+          <div class="slide">
+          <img src="{% static 'image/Untitled5.png' %}" alt="Image 5" title="Click for more">
+        </div>
+      </div>
+    </div>
+
+      <div class="credit">
+          <footer><p>Project team: Glodeanu Delia-Maria & Pascu Sofia-Ioana</p>
+          <p>Supported internship at ICI - Bucharest</p></footer>
+          </div>
+    </section>
+  </main>
+</body>
+
+</html>
+
+
+
+
+

@@ -1,0 +1,193 @@
+<html>
+<head>
+<title>views.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6897bb;}
+.s3 { color: #808080;}
+.s4 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+views.py</font>
+</center></td></tr></table>
+<pre><span class="s0">from </span><span class="s1">django.shortcuts </span><span class="s0">import </span><span class="s1">render</span>
+<span class="s0">import </span><span class="s1">matplotlib.pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+<span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">from </span><span class="s1">io </span><span class="s0">import </span><span class="s1">BytesIO</span>
+<span class="s0">import </span><span class="s1">base64</span>
+<span class="s0">from </span><span class="s1">GooglePlayStoreApp.models </span><span class="s0">import </span><span class="s1">App</span>
+<span class="s0">import </span><span class="s1">seaborn </span><span class="s0">as </span><span class="s1">sns</span>
+<span class="s0">import </span><span class="s1">matplotlib.ticker </span><span class="s0">as </span><span class="s1">mtick</span>
+<span class="s0">from </span><span class="s1">django.views.decorators.cache </span><span class="s0">import </span><span class="s1">cache_page</span>
+
+<span class="s1">@cache_page(</span><span class="s2">60 </span><span class="s1">* </span><span class="s2">15</span><span class="s1">)</span>
+<span class="s0">def </span><span class="s1">plot(request):</span>
+    <span class="s1">apps = App.objects.all()</span>
+    <span class="s1">prices = [app.Price </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">ratings = [app.Rating </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s3">#trendline</span>
+    <span class="s1">coefficients = np.polyfit(prices</span><span class="s0">, </span><span class="s1">ratings</span><span class="s0">, </span><span class="s2">1</span><span class="s1">) </span><span class="s3">#o dreapta</span>
+    <span class="s1">p = np.poly1d(coefficients)</span>
+    <span class="s3">#ploturile</span>
+    <span class="s1">fig</span><span class="s0">, </span><span class="s1">ax = plt.subplots(figsize=(</span><span class="s2">6</span><span class="s0">, </span><span class="s2">6</span><span class="s1">))</span>
+
+    <span class="s1">ax.scatter(prices</span><span class="s0">, </span><span class="s1">ratings)</span>
+    <span class="s1">ax.set_xlabel(</span><span class="s4">'Price'</span><span class="s1">)</span>
+    <span class="s1">ax.set_ylabel(</span><span class="s4">'Rating'</span><span class="s1">)</span>
+    <span class="s1">ax.set_ylim([</span><span class="s2">2</span><span class="s0">, </span><span class="s2">5.1</span><span class="s1">])</span>
+    <span class="s1">plt.plot(prices</span><span class="s0">, </span><span class="s1">p(prices)</span><span class="s0">, </span><span class="s4">&quot;r-&quot;</span><span class="s1">)</span>
+
+    <span class="s1">buffer = BytesIO()</span>
+    <span class="s1">fig.savefig(buffer</span><span class="s0">, </span><span class="s1">format=</span><span class="s4">'png'</span><span class="s1">)</span>
+    <span class="s1">buffer.seek(</span><span class="s2">0</span><span class="s1">)</span>
+
+    <span class="s1">image_png = buffer.getvalue()</span>
+    <span class="s1">buffer.close()</span>
+    <span class="s1">grafic = base64.b64encode(image_png).decode(</span><span class="s4">'utf-8'</span><span class="s1">)</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s4">'plot.html'</span><span class="s0">, </span><span class="s1">{</span><span class="s4">'grafic'</span><span class="s1">: grafic})</span>
+
+<span class="s1">@cache_page(</span><span class="s2">60 </span><span class="s1">* </span><span class="s2">15</span><span class="s1">)</span>
+<span class="s0">def </span><span class="s1">plot1(request):</span>
+    <span class="s1">apps = App.objects.all()</span>
+    <span class="s1">categories = [app.Category </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">installs = [app.MaximumInstalls </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">data = {</span><span class="s4">'Category'</span><span class="s1">: categories</span><span class="s0">, </span><span class="s4">'Installs'</span><span class="s1">: installs}</span>
+    <span class="s1">df = pd.DataFrame(data)</span>
+    <span class="s1">df = df.groupby([</span><span class="s4">'Category'</span><span class="s1">]).agg({</span><span class="s4">'Installs'</span><span class="s1">: </span><span class="s4">'max'</span><span class="s1">}).reset_index()</span>
+
+    <span class="s1">fig</span><span class="s0">, </span><span class="s1">ax = plt.subplots(figsize=(</span><span class="s2">12</span><span class="s0">, </span><span class="s2">5</span><span class="s1">))</span>
+    <span class="s1">ax = sns.barplot(y=</span><span class="s4">'Installs'</span><span class="s0">, </span><span class="s1">x=</span><span class="s4">'Category'</span><span class="s0">, </span><span class="s1">data=df)</span>
+    <span class="s1">ax.yaxis.set_major_formatter(mtick.FormatStrFormatter(</span><span class="s4">'%.0f'</span><span class="s1">))</span>
+    <span class="s1">ax.set_ylabel(</span><span class="s4">'Installations'</span><span class="s1">)</span>
+    <span class="s1">ax.set_xlabel(</span><span class="s4">'Category'</span><span class="s0">, </span><span class="s1">rotation=</span><span class="s2">0</span><span class="s0">, </span><span class="s1">ha=</span><span class="s4">'center'</span><span class="s1">)</span>
+    <span class="s1">plt.xticks(rotation=</span><span class="s2">90</span><span class="s1">)</span>
+
+    <span class="s1">buffer = BytesIO()</span>
+    <span class="s1">fig.savefig(buffer</span><span class="s0">, </span><span class="s1">format=</span><span class="s4">'png'</span><span class="s0">, </span><span class="s1">bbox_inches=</span><span class="s4">'tight'</span><span class="s1">)</span>
+    <span class="s1">buffer.seek(</span><span class="s2">0</span><span class="s1">)</span>
+    <span class="s1">image_png = buffer.getvalue()</span>
+    <span class="s1">buffer.close()</span>
+    <span class="s1">grafic1 = base64.b64encode(image_png).decode(</span><span class="s4">'utf-8'</span><span class="s1">)</span>
+
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s4">'plot1.html'</span><span class="s0">, </span><span class="s1">{</span><span class="s4">'grafic'</span><span class="s1">: grafic1})</span>
+
+<span class="s1">@cache_page(</span><span class="s2">60 </span><span class="s1">* </span><span class="s2">15</span><span class="s1">)</span>
+<span class="s0">def </span><span class="s1">plot2(request):</span>
+    <span class="s3">#grafic 1</span>
+    <span class="s1">apps = App.objects.all()</span>
+    <span class="s1">categories = [app.Category </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">prices = [app.Price </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">data = {</span><span class="s4">'Category'</span><span class="s1">: categories</span><span class="s0">, </span><span class="s4">'Prices'</span><span class="s1">: prices}</span>
+    <span class="s1">df = pd.DataFrame(data)</span>
+    <span class="s1">df = df.groupby([</span><span class="s4">'Category'</span><span class="s1">]).agg({</span><span class="s4">'Prices'</span><span class="s1">: </span><span class="s4">'sum'</span><span class="s1">}).reset_index()</span>
+    <span class="s1">fig</span><span class="s0">, </span><span class="s1">ax = plt.subplots(figsize=(</span><span class="s2">8</span><span class="s0">, </span><span class="s2">5</span><span class="s1">))</span>
+    <span class="s1">ax = sns.barplot(y=</span><span class="s4">'Prices'</span><span class="s0">, </span><span class="s1">x=</span><span class="s4">'Category'</span><span class="s0">, </span><span class="s1">data=df)</span>
+    <span class="s1">ax.set_ylabel(</span><span class="s4">&quot;Prices's Sum&quot;</span><span class="s1">)</span>
+    <span class="s1">ax.set_xlabel(</span><span class="s4">'Category'</span><span class="s1">)</span>
+    <span class="s1">plt.xticks(rotation=</span><span class="s2">90</span><span class="s1">)</span>
+    <span class="s1">buffer = BytesIO()</span>
+    <span class="s1">fig.savefig(buffer</span><span class="s0">, </span><span class="s1">format=</span><span class="s4">'png'</span><span class="s0">, </span><span class="s1">bbox_inches=</span><span class="s4">'tight'</span><span class="s1">)</span>
+    <span class="s1">buffer.seek(</span><span class="s2">0</span><span class="s1">)</span>
+    <span class="s1">image_png = buffer.getvalue()</span>
+    <span class="s1">buffer.close()</span>
+    <span class="s1">grafic1 = base64.b64encode(image_png).decode(</span><span class="s4">'utf-8'</span><span class="s1">)</span>
+    <span class="s3">#grafic2</span>
+    <span class="s1">df2 = pd.DataFrame(data)</span>
+    <span class="s1">df2 = df2.groupby([</span><span class="s4">'Category'</span><span class="s1">]).agg({</span><span class="s4">'Prices'</span><span class="s1">: </span><span class="s4">'max'</span><span class="s1">}).reset_index()</span>
+    <span class="s1">fig2</span><span class="s0">, </span><span class="s1">ax2=plt.subplots(figsize=(</span><span class="s2">8</span><span class="s0">, </span><span class="s2">5</span><span class="s1">))</span>
+    <span class="s1">ax2=sns.barplot(y=</span><span class="s4">'Prices'</span><span class="s0">, </span><span class="s1">x=</span><span class="s4">'Category'</span><span class="s0">, </span><span class="s1">data=df2)</span>
+    <span class="s1">ax2.set_ylabel(</span><span class="s4">'Prices Max'</span><span class="s1">)</span>
+    <span class="s1">ax2.set_xlabel(</span><span class="s4">'Category'</span><span class="s1">)</span>
+    <span class="s1">plt.xticks(rotation=</span><span class="s2">90</span><span class="s1">)</span>
+    <span class="s1">buffer2 = BytesIO()</span>
+    <span class="s1">fig2.savefig(buffer2</span><span class="s0">, </span><span class="s1">format=</span><span class="s4">'png'</span><span class="s0">, </span><span class="s1">bbox_inches=</span><span class="s4">'tight'</span><span class="s1">)</span>
+    <span class="s1">buffer2.seek(</span><span class="s2">0</span><span class="s1">)</span>
+    <span class="s1">image_png = buffer2.getvalue()</span>
+    <span class="s1">buffer2.close()</span>
+    <span class="s1">grafic2 = base64.b64encode(image_png).decode(</span><span class="s4">'utf-8'</span><span class="s1">)</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s4">'plot2.html'</span><span class="s0">, </span><span class="s1">{</span><span class="s4">'grafic1'</span><span class="s1">: grafic1</span><span class="s0">, </span><span class="s4">'grafic2' </span><span class="s1">: grafic2})</span>
+
+<span class="s1">@cache_page(</span><span class="s2">60 </span><span class="s1">* </span><span class="s2">15</span><span class="s1">)</span>
+<span class="s0">def </span><span class="s1">plot3(request):</span>
+    <span class="s1">apps = App.objects.all()</span>
+    <span class="s1">ratings = [app.Rating </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">years = [app.Released.year </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">data = {</span><span class="s4">'Years'</span><span class="s1">: years</span><span class="s0">, </span><span class="s4">'Ratings'</span><span class="s1">: ratings}</span>
+    <span class="s1">df = pd.DataFrame(data)</span>
+    <span class="s1">df = df.groupby([</span><span class="s4">'Years'</span><span class="s1">]).agg({</span><span class="s4">'Ratings'</span><span class="s1">: </span><span class="s4">'mean'</span><span class="s1">}).reset_index()</span>
+    <span class="s1">fig</span><span class="s0">, </span><span class="s1">ax = plt.subplots(figsize=(</span><span class="s2">12</span><span class="s0">, </span><span class="s2">7</span><span class="s1">)</span><span class="s0">, </span><span class="s1">facecolor=</span><span class="s4">'pink'</span><span class="s1">)</span>
+    <span class="s1">ax=sns.lineplot(data=df</span><span class="s0">, </span><span class="s1">x=</span><span class="s4">'Years'</span><span class="s0">, </span><span class="s1">y=</span><span class="s4">&quot;Ratings&quot;</span><span class="s0">, </span><span class="s1">color=</span><span class="s4">'green'</span><span class="s0">, </span><span class="s1">linestyle=</span><span class="s4">'solid'</span><span class="s1">)</span>
+    <span class="s1">ax.set_ylabel(</span><span class="s4">&quot;Ratings's mean&quot;</span><span class="s1">)</span>
+    <span class="s1">buffer = BytesIO()</span>
+    <span class="s1">fig.savefig(buffer</span><span class="s0">, </span><span class="s1">format=</span><span class="s4">'png'</span><span class="s0">, </span><span class="s1">bbox_inches=</span><span class="s4">'tight'</span><span class="s1">)</span>
+    <span class="s1">buffer.seek(</span><span class="s2">0</span><span class="s1">)</span>
+    <span class="s1">image_png = buffer.getvalue()</span>
+    <span class="s1">buffer.close()</span>
+    <span class="s1">grafic = base64.b64encode(image_png).decode(</span><span class="s4">'utf-8'</span><span class="s1">)</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s4">'plot3.html'</span><span class="s0">, </span><span class="s1">{</span><span class="s4">'grafic'</span><span class="s1">:grafic})</span>
+
+<span class="s1">@cache_page(</span><span class="s2">60 </span><span class="s1">* </span><span class="s2">15</span><span class="s1">)</span>
+<span class="s0">def </span><span class="s1">plot4(request):</span>
+    <span class="s1">apps = App.objects.filter(Released__year__in=[</span><span class="s2">2019</span><span class="s1">])</span>
+    <span class="s1">categories = [app.Category </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">data = {</span><span class="s4">'Category'</span><span class="s1">: categories}</span>
+    <span class="s1">df = pd.DataFrame(data)</span>
+    <span class="s1">df = df[</span><span class="s4">'Category'</span><span class="s1">].value_counts().reset_index(name=</span><span class="s4">'Count'</span><span class="s1">).rename(columns={</span><span class="s4">'index'</span><span class="s1">: </span><span class="s4">'Category'</span><span class="s1">})</span>
+    <span class="s1">fig</span><span class="s0">, </span><span class="s1">ax = plt.subplots(figsize=(</span><span class="s2">12</span><span class="s0">, </span><span class="s2">7</span><span class="s1">)</span><span class="s0">, </span><span class="s1">facecolor=</span><span class="s4">'pink'</span><span class="s1">)</span>
+    <span class="s1">ax = sns.barplot(data=df</span><span class="s0">, </span><span class="s1">x=</span><span class="s4">'Category'</span><span class="s0">, </span><span class="s1">y=</span><span class="s4">'Count'</span><span class="s0">, </span><span class="s1">palette=</span><span class="s4">'rocket'</span><span class="s1">)</span>
+    <span class="s1">ax.set_ylabel(</span><span class="s4">&quot;Number of Apps Released in 2019&quot;</span><span class="s1">)</span>
+    <span class="s1">ax.set_xlabel(</span><span class="s4">&quot;Category&quot;</span><span class="s1">)</span>
+    <span class="s1">ax.set_xticklabels(ax.get_xticklabels()</span><span class="s0">, </span><span class="s1">rotation=</span><span class="s2">45</span><span class="s0">, </span><span class="s1">ha=</span><span class="s4">'right'</span><span class="s1">)</span>
+    <span class="s1">buffer = BytesIO()</span>
+    <span class="s1">fig.savefig(buffer</span><span class="s0">, </span><span class="s1">format=</span><span class="s4">'png'</span><span class="s0">, </span><span class="s1">bbox_inches=</span><span class="s4">'tight'</span><span class="s1">)</span>
+    <span class="s1">buffer.seek(</span><span class="s2">0</span><span class="s1">)</span>
+    <span class="s1">image_png = buffer.getvalue()</span>
+    <span class="s1">buffer.close()</span>
+    <span class="s1">grafic1 = base64.b64encode(image_png).decode(</span><span class="s4">'utf-8'</span><span class="s1">)</span>
+    <span class="s3"># grafic 2</span>
+    <span class="s1">apps = App.objects.filter(Released__year__in=[</span><span class="s2">2020</span><span class="s1">])</span>
+    <span class="s1">categories = [app.Category </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">data = {</span><span class="s4">'Category'</span><span class="s1">: categories}</span>
+    <span class="s1">df = pd.DataFrame(data)</span>
+    <span class="s1">df = df[</span><span class="s4">'Category'</span><span class="s1">].value_counts().reset_index(name=</span><span class="s4">'Count'</span><span class="s1">).rename(columns={</span><span class="s4">'index'</span><span class="s1">: </span><span class="s4">'Category'</span><span class="s1">})</span>
+    <span class="s1">fig</span><span class="s0">, </span><span class="s1">ax = plt.subplots(figsize=(</span><span class="s2">12</span><span class="s0">, </span><span class="s2">7</span><span class="s1">)</span><span class="s0">, </span><span class="s1">facecolor=</span><span class="s4">'pink'</span><span class="s1">)</span>
+    <span class="s1">ax = sns.barplot(data=df</span><span class="s0">, </span><span class="s1">x=</span><span class="s4">'Category'</span><span class="s0">, </span><span class="s1">y=</span><span class="s4">'Count'</span><span class="s0">, </span><span class="s1">palette=</span><span class="s4">'rocket'</span><span class="s1">)</span>
+    <span class="s1">ax.set_ylabel(</span><span class="s4">&quot;Number of Apps Released in 2020&quot;</span><span class="s1">)</span>
+    <span class="s1">ax.set_xlabel(</span><span class="s4">&quot;Category&quot;</span><span class="s1">)</span>
+    <span class="s1">ax.set_xticklabels(ax.get_xticklabels()</span><span class="s0">, </span><span class="s1">rotation=</span><span class="s2">45</span><span class="s0">, </span><span class="s1">ha=</span><span class="s4">'right'</span><span class="s1">)</span>
+    <span class="s1">buffer = BytesIO()</span>
+    <span class="s1">fig.savefig(buffer</span><span class="s0">, </span><span class="s1">format=</span><span class="s4">'png'</span><span class="s0">, </span><span class="s1">bbox_inches=</span><span class="s4">'tight'</span><span class="s1">)</span>
+    <span class="s1">buffer.seek(</span><span class="s2">0</span><span class="s1">)</span>
+    <span class="s1">image_png = buffer.getvalue()</span>
+    <span class="s1">buffer.close()</span>
+    <span class="s1">grafic2 = base64.b64encode(image_png).decode(</span><span class="s4">'utf-8'</span><span class="s1">)</span>
+    <span class="s3">#grafic 3</span>
+    <span class="s1">apps = App.objects.filter(Released__year__in=[</span><span class="s2">2021</span><span class="s1">])</span>
+    <span class="s1">categories = [app.Category </span><span class="s0">for </span><span class="s1">app </span><span class="s0">in </span><span class="s1">apps]</span>
+    <span class="s1">data = {</span><span class="s4">'Category'</span><span class="s1">: categories}</span>
+    <span class="s1">df = pd.DataFrame(data)</span>
+    <span class="s1">df = df[</span><span class="s4">'Category'</span><span class="s1">].value_counts().reset_index(name=</span><span class="s4">'Count'</span><span class="s1">).rename(columns={</span><span class="s4">'index'</span><span class="s1">: </span><span class="s4">'Category'</span><span class="s1">})</span>
+    <span class="s1">fig</span><span class="s0">, </span><span class="s1">ax = plt.subplots(figsize=(</span><span class="s2">12</span><span class="s0">, </span><span class="s2">7</span><span class="s1">)</span><span class="s0">, </span><span class="s1">facecolor=</span><span class="s4">'pink'</span><span class="s1">)</span>
+    <span class="s1">ax = sns.barplot(data=df</span><span class="s0">, </span><span class="s1">x=</span><span class="s4">'Category'</span><span class="s0">, </span><span class="s1">y=</span><span class="s4">'Count'</span><span class="s0">, </span><span class="s1">palette=</span><span class="s4">'rocket'</span><span class="s1">)</span>
+    <span class="s1">ax.set_ylabel(</span><span class="s4">&quot;Number of Apps Released in 2021&quot;</span><span class="s1">)</span>
+    <span class="s1">ax.set_xlabel(</span><span class="s4">&quot;Category&quot;</span><span class="s1">)</span>
+    <span class="s1">ax.set_xticklabels(ax.get_xticklabels()</span><span class="s0">, </span><span class="s1">rotation=</span><span class="s2">45</span><span class="s0">, </span><span class="s1">ha=</span><span class="s4">'right'</span><span class="s1">)</span>
+    <span class="s1">buffer = BytesIO()</span>
+    <span class="s1">fig.savefig(buffer</span><span class="s0">, </span><span class="s1">format=</span><span class="s4">'png'</span><span class="s0">, </span><span class="s1">bbox_inches=</span><span class="s4">'tight'</span><span class="s1">)</span>
+    <span class="s1">buffer.seek(</span><span class="s2">0</span><span class="s1">)</span>
+    <span class="s1">image_png = buffer.getvalue()</span>
+    <span class="s1">buffer.close()</span>
+    <span class="s1">grafic3 = base64.b64encode(image_png).decode(</span><span class="s4">'utf-8'</span><span class="s1">)</span>
+    <span class="s0">return </span><span class="s1">render(request</span><span class="s0">, </span><span class="s4">'plot4.html'</span><span class="s0">, </span><span class="s1">{</span><span class="s4">'grafic1'</span><span class="s1">: grafic1</span><span class="s0">, </span><span class="s4">'grafic2' </span><span class="s1">: grafic2</span><span class="s0">, </span><span class="s4">'grafic3' </span><span class="s1">: grafic3})</span>
+
+
+</pre>
+</body>
+</html>
